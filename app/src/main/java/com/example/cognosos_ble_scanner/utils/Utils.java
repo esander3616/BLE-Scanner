@@ -16,7 +16,7 @@ public class Utils {
         for (String piece : pieces) {
             try {
                 ScanFilter filt = new ScanFilter.Builder()
-                        .setDeviceAddress(piece.trim())
+                        .setDeviceAddress(piece.trim().toUpperCase())
                         .build();
                 ret.add(filt);
             } catch (IllegalArgumentException e) {}

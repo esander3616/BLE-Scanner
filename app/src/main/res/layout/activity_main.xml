@@ -44,10 +44,19 @@
             android:id="@+id/createCsvButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="140dp"
+            android:layout_marginStart="15dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:text="Create CSV" />
+
+        <Button
+            android:id="@+id/settingsButton"
+            android:layout_width="110dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="15dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:text="Settings" />
     </LinearLayout>
 
     <TextView
