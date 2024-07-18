@@ -31,11 +31,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Settings"
-            android:exported="true">
-
-        </activity>
+        <activity  android:name=".Settings" android:exported="true"></activity>
+        <activity android:name=".LocationHandler" android:exported="true"></activity>
     </application>
 
 </manifest>
