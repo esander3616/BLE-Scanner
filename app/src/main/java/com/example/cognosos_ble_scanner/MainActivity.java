@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ParcelUuid;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +24,10 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import android.hardware.SensorManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 
 import com.example.cognosos_ble_scanner.utils.Utils;
 
@@ -39,6 +44,10 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
 
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner bluetoothLeScanner;
+    private SensorManager sm;
+    private Sensor accelerometer;
+    private Sensor gyroSensor;
+    private SensorEventListener sensorEventListener;
     private LocationHandler locationHandler;
     private double longitude;
     private double latitude;
@@ -52,8 +61,11 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
     private EditText filterBox;
     private boolean scanning;
     private List<ScanFilter> filter;
+
     private Utils util = new Utils();
     private static int SCAN_TIME = 10;
+    private float[] accelerometerValues = new float[3];
+    private float[] gyroscopeValues = new float[3];
 
     private ActivityResultLauncher<Intent> enableBluetoothLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -133,6 +145,33 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
             Intent settings = new Intent(this, Settings.class);
             settingsLauncher.launch(settings);
         });
+
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        accelerometer = sm.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        gyroSensor = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        SensorEventListener sensorEventListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+                    accelerometerValues = event.values.clone(); // Process linear acceleration
+                } else if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+                    float[] rotationMatrix = new float[9];
+                    float[] orientationValues = new float[3];
+                    SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values);
+                    SensorManager.getOrientation(rotationMatrix, orientationValues);
+                    gyroscopeValues[0] = orientationValues[0]; // Azimuth (yaw)
+                    gyroscopeValues[1] = orientationValues[1]; // Pitch
+                    gyroscopeValues[2] = orientationValues[2]; // Roll
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {} //Not implemented yet
+        };
+
+        sm.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(sensorEventListener, gyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void onLocationUpdated(double latitude, double longitude) {
@@ -216,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
                     stopScanning();
                 }
             }
-        }, SCAN_TIME * 2 * 1000);
+        }, SCAN_TIME * 1000 * 5);
     }
 
     private void stopScanning() {
@@ -231,26 +270,35 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, @NonNull ScanResult result) {
-            BluetoothDevice device = result.getDevice();
-            int rssi = result.getRssi();
-            String address = device.getAddress();
-            String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-            Log.d(TAG, "Device found: " + device.getName() + ", RSSI: " + rssi + ", Address: " + address);
-            updateUI("Time: " + timestamp + ", Device: " + (device.getName() != null ? device.getName() : "Unknown")
-                    + ", RSSI: " + rssi + ", Address: " + address + ", Coordinate: (" + latitude + "," + longitude + ")" + "\n");
+            processScanResult(result);
         }
 
         @Override
         public void onBatchScanResults(@NonNull List<ScanResult> results) {
             for (ScanResult result : results) {
-                BluetoothDevice device = result.getDevice();
-                int rssi = result.getRssi();
-                String address = device.getAddress();
-                String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-                Log.d(TAG, "Device found: " + device.getName() + ", RSSI: " + rssi + ", Address: " + address);
-                updateUI("Time: " + timestamp + ", Device: " + (device.getName() != null ? device.getName() : "Unknown")
-                        + ", RSSI: " + rssi + ", Address: " + address + ", Coordinate: (" + latitude + "," + longitude + ")" + "\n");
+                processScanResult(result);
             }
+        }
+
+        private void processScanResult(ScanResult result) {
+            BluetoothDevice device = result.getDevice();
+            int rssi = result.getRssi();
+            String address = device.getAddress();
+            String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            String uuid = "N/A";
+            if (result.getScanRecord() != null) {
+                List<ParcelUuid> serviceUuids = result.getScanRecord().getServiceUuids();
+                if (serviceUuids != null && !serviceUuids.isEmpty()) {
+                    uuid = serviceUuids.get(0).getUuid().toString(); // Get the first UUID
+                }
+            }
+
+            String scanData = String.format(Locale.getDefault(),
+                    "Time: %s, Device: %s, RSSI: %d, Address: %s, UUID: %s, Coordinate: (%.5f,%.5f), Accel: [%.2f, %.2f, %.2f], Gyro: [%.2f, %.2f, %.2f]\n",
+                    timestamp, (device.getName() == null ? "N/A" : device.getName()), rssi, address, uuid, latitude, longitude,
+                    accelerometerValues[0], accelerometerValues[1], accelerometerValues[2],
+                    gyroscopeValues[0], gyroscopeValues[1], gyroscopeValues[2]);
+            updateUI(scanData);
         }
 
         @Override
@@ -271,4 +319,10 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
             }
         });
     }
+
+    protected void onDestroy() {
+        super.onDestroy();
+        sm.unregisterListener(sensorEventListener);
+    }
+
 }

@@ -67,22 +67,39 @@ public class Utils extends AppCompatActivity {
                 }
                 if (outputStream != null) {
                     OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                    writer.append("Time, Device Name, RSSI, Address, Coordinate \n");
+                    writer.append("Time,DeviceName,RSSI,Address,Latitude,Longitude,Acc_x,Acc_y,Acc_z,Gyro_x,Gyro_y,Gyro_z\n");
                     String[] devices = deviceList.split("\n");
                     for (String device : devices) {
                         String[] deviceDetails = device.split(", ");
-                        if (deviceDetails.length == 5) {
+                        if (deviceDetails.length == 12) {
                             String time = deviceDetails[0].split(": ")[1];
                             String deviceName = deviceDetails[1].split(": ").length > 1 ? deviceDetails[1].split(": ")[1] : "Unknown";
                             String rssi = deviceDetails[2].split(": ")[1];
                             String address = deviceDetails[3].split(": ")[1];
-                            String location = deviceDetails[4].split(": ")[1];
+                            String uuid = deviceDetails[4].split(": ")[1];
+                            String location = deviceDetails[5].split(": ")[1];
+                            String latitude = location.split(",")[0].replace("(", "");
+                            String longitude = location.split(",")[1].replace(")", "");
+                            String accelx = deviceDetails[6].split(": ")[1].replace("[", "");
+                            String accely = deviceDetails[7];
+                            String accelz = deviceDetails[8].replace("]", "");
+                            String gyrox = deviceDetails[9].split(": ")[1].replace("[", "");
+                            String gyroy = deviceDetails[10];
+                            String gyroz = deviceDetails[11].replace("]", "");
+
 
                             writer.append(time).append(",");
                             writer.append(deviceName).append(",");
                             writer.append(rssi).append(",");
                             writer.append(address).append(",");
-                            writer.append(location).append("\n");
+                            writer.append(latitude).append(",");
+                            writer.append(longitude).append(",");
+                            writer.append(accelx).append(",");
+                            writer.append(accely).append(",");
+                            writer.append(accelz).append(",");
+                            writer.append(gyrox).append(",");
+                            writer.append(gyroy).append(",");
+                            writer.append(gyroz).append("\n");
                         }
                     }
                     writer.flush();
