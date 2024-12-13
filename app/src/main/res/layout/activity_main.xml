@@ -13,7 +13,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="32dp"
-        android:hint="Enter filter addresses with commas"
+        android:hint="Enter filter addresses (comma-separated)"
         android:inputType="text"
         android:padding="12dp"
         android:background="@drawable/edittext_background"
@@ -21,16 +21,31 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
+    <EditText
+        android:id="@+id/nameFilterBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:hint="Enter device names (comma-separated)"
+        android:inputType="text"
+        android:padding="12dp"
+        android:background="@drawable/edittext_background"
+        app:layout_constraintTop_toBottomOf="@id/filterBox"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <LinearLayout
         android:id="@+id/buttonLayout"
-        android:layout_width="381dp"
-        android:layout_height="43dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintTop_toBottomOf="@id/nameFilterBox"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/filterBox">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center_horizontal">
 
         <Button
             android:id="@+id/scanButton"
@@ -51,8 +66,8 @@
 
         <Button
             android:id="@+id/settingsButton"
-            android:layout_width="110dp"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
@@ -95,4 +110,5 @@
             android:textSize="16sp"
             android:padding="8dp"/>
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

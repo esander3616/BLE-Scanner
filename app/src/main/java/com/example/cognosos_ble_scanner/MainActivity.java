@@ -212,24 +212,32 @@ public class MainActivity extends AppCompatActivity implements LocationHandler.L
     }
 
     private void initializeFilterAndStartScanning() {
+        String addressFilterInput = ((EditText) findViewById(R.id.filterBox)).getText().toString();
+        String nameFilterInput = ((EditText) findViewById(R.id.nameFilterBox)).getText().toString();
         try {
-            filter = Utils.getFilter(filterBox.getText().toString());
+            filter = Utils.getFilter(addressFilterInput, nameFilterInput);
         } catch (Exception e) {
             filter = new ArrayList<>();
         }
-        displayFilters();
+        displayFilters(filter);
         startScanning();
     }
 
-    private void displayFilters() {
-        textView.setText("Scanning with filters on: \n");
-        if (filter != null && !filter.isEmpty()) {
-            for (ScanFilter filt : filter) {
-                textView.append(filt.getDeviceAddress() + "\n");
+    private void displayFilters(List<ScanFilter> filters) {
+        StringBuilder filterSummary = new StringBuilder("Scanning with filters:\n");
+        if (filters != null && !filters.isEmpty()) {
+            for (ScanFilter filter : filters) {
+                if (filter.getDeviceAddress() != null) {
+                    filterSummary.append("Address: ").append(filter.getDeviceAddress()).append("\n");
+                }
+                if (filter.getDeviceName() != null) {
+                    filterSummary.append("Name: ").append(filter.getDeviceName()).append("\n");
+                }
             }
         } else {
-            textView.append("No filters applied\n");
+            filterSummary.append("No filters applied\n");
         }
+        ((TextView) findViewById(R.id.textView)).setText(filterSummary.toString());
     }
 
     private void startScanning() {

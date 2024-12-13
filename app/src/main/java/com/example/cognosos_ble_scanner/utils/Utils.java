@@ -22,21 +22,28 @@ import java.util.List;
 
 public class Utils extends AppCompatActivity {
     private final String TAG = "BLE_Scanner";
-    public static List<ScanFilter> getFilter(String addrs) {
-        if (addrs == null || addrs.isEmpty()) {
-            return new ArrayList<>();
+    public static List<ScanFilter> getFilter(String addresses, String names) {
+        List<ScanFilter> filters = new ArrayList<>();
+
+        if (addresses != null && !addresses.isEmpty()) {
+            for (String addr : addresses.split(",")) {
+                addr = addr.trim();
+                if (!addr.isEmpty()) {
+                    filters.add(new ScanFilter.Builder().setDeviceAddress(addr).build());
+                }
+            }
         }
-        List<ScanFilter> ret = new ArrayList<>();
-        String[] pieces = addrs.split(",");
-        for (String piece : pieces) {
-            try {
-                ScanFilter filt = new ScanFilter.Builder()
-                        .setDeviceAddress(piece.trim().toUpperCase())
-                        .build();
-                ret.add(filt);
-            } catch (IllegalArgumentException e) {}
+
+        if (names != null && !names.isEmpty()) {
+            for (String name : names.split(",")) {
+                name = name.trim();
+                if (!name.isEmpty()) {
+                    filters.add(new ScanFilter.Builder().setDeviceName(name).build());
+                }
+            }
         }
-        return ret;
+
+        return filters;
     }
 
     public static ScanSettings makeSettings() {
